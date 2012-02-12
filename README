@@ -1,0 +1,11 @@
+## JUnit4Android
+JUnit4Android is an Android library project to build Android test runner applications for running JUnit4 and JUnit3 tests and test suites.
+The Android development tools come with a TestRunner that can only run JUnit3 tests. JUnit4Android is useful, if you have existing JUnit4 tests
+and want to run them on the Android platform. However JUnit4Android also executes JUnit3 tests, so you are free to mix all versions together.
+
+### Check out the Sources
+`git://github.com/dthommes/JUnit4Android.wiki.git`
+
+## License
+JUnit4Android is released under version 2.0 of the
+[Apache License](http://www.apache.org/licenses/LICENSE-2.0).
