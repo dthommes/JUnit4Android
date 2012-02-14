@@ -12,14 +12,18 @@ public final class R {
     }
     public static final class drawable {
         public static int ic_launcher=0x7f020000;
+        public static int progress=0x7f020001;
     }
     public static final class id {
         public static int classNameText=0x7f050000;
-        public static int expandableListView=0x7f050005;
-        public static int failureList=0x7f050002;
+        public static int expandableListView=0x7f050008;
+        public static int failureList=0x7f050003;
+        public static int gallerylayout=0x7f050004;
         public static int methodNameText=0x7f050001;
-        public static int startButton=0x7f050004;
-        public static int suiteNameTextView=0x7f050003;
+        public static int progressBar=0x7f050005;
+        public static int shortDetailsText=0x7f050002;
+        public static int startButton=0x7f050007;
+        public static int suiteNameTextView=0x7f050006;
     }
     public static final class layout {
         public static int junittestdetails=0x7f030000;

@@ -33,12 +33,16 @@ import android.widget.ListView;
 import android.widget.TextView;
 
 /**
- * 
- * 
+ * Activity to show the detailed test results
+ *
  * @author Daniel Thommes
  */
 public class TestResultDetailActivity extends Activity {
 
+	/**
+	 * Color of the text depending on the test being successful, failed or
+	 * ignored
+	 */
 	private int textColor;
 
 	@Override
@@ -50,19 +54,27 @@ public class TestResultDetailActivity extends Activity {
 		Description description = result.description;
 		List<Failure> failures = result.failures;
 
+		TextView classNameText = (TextView) findViewById(R.id.classNameText);
+		TextView methodNameText = (TextView) findViewById(R.id.methodNameText);
+		TextView shortDetailsText = (TextView) findViewById(R.id.shortDetailsText);
+		ListView failureList = (ListView) findViewById(R.id.failureList);
+
+		classNameText.setText(description.getClassName());
+		methodNameText.setText(description.getMethodName());
+
 		textColor = Color.GREEN;
 		if (result.hasFailures()) {
 			textColor = Color.RED;
+		} else if (result.isIgnored()) {
+			textColor = Color.YELLOW;
+			shortDetailsText.setText("Ignored:\"" + result.ignoreReason + "\"");
+		} else {
+			// test passed
+			shortDetailsText.setText("Passed");
 		}
-
-		TextView classNameText = (TextView) findViewById(R.id.classNameText);
-		TextView methodNameText = (TextView) findViewById(R.id.methodNameText);
-		ListView failureList = (ListView) findViewById(R.id.failureList);
-
-		classNameText.setText("Class: " + description.getClassName());
-		methodNameText.setText("Method: " + description.getMethodName());
 		classNameText.setTextColor(textColor);
 		methodNameText.setTextColor(textColor);
+		shortDetailsText.setTextColor(textColor);
 
 		failureList.setAdapter(new FailureListAdapter(this,
 				android.R.layout.simple_list_item_1, failures));
@@ -78,7 +90,7 @@ public class TestResultDetailActivity extends Activity {
 
 		/**
 		 * {@inheritDoc}
-		 * 
+		 *
 		 * @see android.widget.ArrayAdapter#getView(int, android.view.View,
 		 *      android.view.ViewGroup)
 		 */
@@ -86,7 +98,7 @@ public class TestResultDetailActivity extends Activity {
 		public View getView(int position, View convertView, ViewGroup parent) {
 			Failure failure = getItem(position);
 			TextView textView = new TextView(TestResultDetailActivity.this);
-			textView.setText("Message: " + failure.getMessage() + "\nTrace:\n"
+			textView.setText("\"" + failure.getMessage() + "\"\n\n"
 					+ failure.getTrace());
 
 			textView.setTextColor(textColor);

@@ -10,7 +10,7 @@ import junit.framework.TestSuite;
 
 /**
  * Example for a JUnit3 test suite
- * 
+ *
  * @author Daniel Thommes
  */
 public class Junit3TestSuite {
@@ -19,6 +19,7 @@ public class Junit3TestSuite {
 		TestSuite suite = new TestSuite(Junit3TestSuite.class.getName());
 		// $JUnit-BEGIN$
 		suite.addTest(new Junit3TestCase());
+		suite.addTest(new Junit3TestCase2());
 		// $JUnit-END$
 		return suite;
 	}

@@ -4,17 +4,53 @@
     android:layout_height="fill_parent"
     android:orientation="vertical" >
 
-    <TextView
-        android:id="@+id/classNameText"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="class.name.text.ClassName" />
+    <LinearLayout
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content" >
 
-    <TextView
-        android:id="@+id/methodNameText"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="methodName()" />
+        <TextView
+            android:layout_width="60dp"
+            android:layout_height="wrap_content"
+            android:text="Class:" />
+
+        <TextView
+            android:id="@+id/classNameText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="class.name.text.ClassName" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content" >
+
+        <TextView
+            android:layout_width="60dp"
+            android:layout_height="wrap_content"
+            android:text="Method:" />
+
+        <TextView
+            android:id="@+id/methodNameText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content" >
+
+        <TextView
+            android:layout_width="60dp"
+            android:layout_height="wrap_content"
+            android:text="Details:" />
+
+        <TextView
+            android:id="@+id/shortDetailsText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="" />
+    </LinearLayout>
 
     <ListView
         android:id="@+id/failureList"

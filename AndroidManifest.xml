@@ -22,9 +22,9 @@
             following element to make <package-name>.AllTests
             the class to be run as test.
             -->
-            <meta-data
+            <!-- meta-data
                 android:name="testClass"
-                android:value="org.junit4android.tests.Junit4TestSuite" />
+                android:value="org.junit4android.tests.Junit4TestSuite" / -->
         </activity>
         <activity
             android:label="@string/app_name"

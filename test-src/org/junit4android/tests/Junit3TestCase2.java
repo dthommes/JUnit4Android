@@ -23,7 +23,7 @@ import junit.framework.TestCase;
  *
  * @author Daniel Thommes
  */
-public class Junit3TestCase extends TestCase {
+public class Junit3TestCase2 extends TestCase {
 
 	public void test1() throws Exception {
 		Thread.sleep(500);

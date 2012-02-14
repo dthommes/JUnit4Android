@@ -16,9 +16,14 @@
 
 package org.junit4android;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Enumeration;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -26,6 +31,7 @@ import java.util.List;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
 
+import org.junit.Ignore;
 import org.junit.runner.Description;
 import org.junit.runner.Request;
 import org.junit.runner.Runner;
@@ -38,9 +44,11 @@ import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
+import android.content.res.Resources;
 import android.database.DataSetObservable;
 import android.database.DataSetObserver;
 import android.graphics.Color;
+import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.Gravity;
@@ -51,12 +59,13 @@ import android.widget.AbsListView;
 import android.widget.BaseExpandableListAdapter;
 import android.widget.Button;
 import android.widget.ExpandableListView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
 /**
  * Activity that runs JUnit tests.
- * 
+ *
  * @author Daniel Thommes
  */
 public class JunitTestRunnerActivity extends Activity {
@@ -78,15 +87,20 @@ public class JunitTestRunnerActivity extends Activity {
 
 	private TextView testNameTextView;
 
+	private ProgressBar progressBar;
+
+	private Drawable progressDrawable;
+
 	/**
 	 * {@inheritDoc}
-	 * 
+	 *
 	 * @see android.app.Activity#onCreate(android.os.Bundle)
 	 */
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
+
 		setContentView(R.layout.junittestrunner);
 		testListView = (ExpandableListView) findViewById(R.id.expandableListView);
 		testListAdapter = new ExpandableTestListAdapter();
@@ -94,6 +108,13 @@ public class JunitTestRunnerActivity extends Activity {
 
 		startButton = (Button) findViewById(R.id.startButton);
 		testNameTextView = (TextView) findViewById(R.id.suiteNameTextView);
+
+		progressDrawable = getResources().getDrawable(R.drawable.progress);
+
+		progressBar = (ProgressBar) findViewById(R.id.progressBar);
+
+		Resources res = getResources();
+		progressBar.setProgressDrawable(progressDrawable);
 
 		testListView
 				.setOnChildClickListener(new ExpandableListView.OnChildClickListener() {
@@ -132,15 +153,35 @@ public class JunitTestRunnerActivity extends Activity {
 
 	/**
 	 * TestResult for display after the test is finished
-	 * 
+	 *
 	 * @author Daniel Thommes
 	 */
 	protected class JunitTestResult {
 		Description description;
 		List<Failure> failures = new LinkedList<Failure>();
+		int testCount;
+		boolean finished = false;
+		String ignoreReason = null;
 
-		public JunitTestResult(Description description) {
+		public JunitTestResult(Description description, int testCount) {
 			this.description = description;
+			this.testCount = testCount;
+		}
+
+		/**
+		 * @param description2
+		 * @param testCount2
+		 * @param b
+		 */
+		public JunitTestResult(Description description, int testCount,
+				String ignoreReason) {
+			this.description = description;
+			this.testCount = testCount;
+			this.ignoreReason = ignoreReason;
+		}
+
+		public boolean isIgnored() {
+			return ignoreReason != null;
 		}
 
 		public boolean addFailure(Failure object) {
@@ -162,6 +203,10 @@ public class JunitTestRunnerActivity extends Activity {
 	 * @param view
 	 */
 	public void onStartTestClicked(View view) {
+		progressBar.setProgressDrawable(progressDrawable);
+		progressBar.setMax(0);
+		progressBar.setProgress(0);
+		progressBar.setSecondaryProgress(0);
 		testResultMap.clear();
 		startButton.setEnabled(false);
 		setProgressBarIndeterminateVisibility(true);
@@ -174,7 +219,7 @@ public class JunitTestRunnerActivity extends Activity {
 	 * the meta-data tag of this activity (key 'testClass'). If there is no
 	 * class given via intent or metadata falls back to
 	 * <appPackageName>.AllTests class.
-	 * 
+	 *
 	 * @return The test class to be run by this activity
 	 * @throws NameNotFoundException
 	 * @throws ClassNotFoundException
@@ -208,7 +253,7 @@ public class JunitTestRunnerActivity extends Activity {
 
 	/**
 	 * Adds a result of a test to the list view
-	 * 
+	 *
 	 * @param result
 	 */
 	private void addTestResult(JunitTestResult result) {
@@ -223,21 +268,34 @@ public class JunitTestRunnerActivity extends Activity {
 		if (testResultMap.size() > 1) {
 			testListView.collapseGroup(testResultMap.size() - 2);
 		}
+		if (result.hasFailures()) {
+			progressBar.setProgress(0);
+			progressBar.setSecondaryProgress(4);
+		}
 		results.add(result);
 		testListAdapter.notifyDataSetChanged();
+		int groupCount = testListAdapter.getGroupCount();
+		int childrenCount = testListAdapter.getChildrenCount(groupCount - 1);
+		int scrollPosition = groupCount + childrenCount - 1;
+		testListView.smoothScrollToPosition(scrollPosition);
 	}
 
 	/**
 	 * {@link AsyncTask} that runs all tests in the background
-	 * 
+	 *
 	 * @author Daniel Thommes
 	 */
 	private class TestRunTask extends
 			AsyncTask<Class<?>, JunitTestResult, Void> {
 
+		boolean runHasFailures = false;
+		int progress = 0;
+		boolean rootTest = true;
+		private int testCount = 0;
+
 		/**
 		 * {@inheritDoc}
-		 * 
+		 *
 		 * @see android.os.AsyncTask#doInBackground(Params[])
 		 */
 		protected Void doInBackground(Class<?>... testClasses) {
@@ -247,7 +305,7 @@ public class JunitTestRunnerActivity extends Activity {
 
 		/**
 		 * Helper to get an Junit3 test suite's static suite method
-		 * 
+		 *
 		 * @param clazz
 		 * @return the suite method
 		 */
@@ -269,27 +327,36 @@ public class JunitTestRunnerActivity extends Activity {
 		 */
 		public void runTests(Class<?>... testClasses) {
 			for (Class<?> testClass : testClasses) {
-				boolean isTestCase = TestCase.class.isAssignableFrom(testClass);
-				if (isTestCase) {
-					/*************************************************************
-					 * JUnit3 TestSuite handling because the below runner
-					 * couldn't do it
-					 *************************************************************/
-					Method suiteMethod = getSuiteMethod(testClass);
-					if (suiteMethod != null) {
-						try {
-							TestSuite suite = (TestSuite) suiteMethod.invoke(
-									null, null);
-							Enumeration tests = suite.tests();
-							while (tests.hasMoreElements()) {
-								Object nextElement = tests.nextElement();
-								runTests(nextElement.getClass());
+				/*************************************************************
+				 * JUnit3 TestSuite handling because the below runner couldn't
+				 * do it
+				 *************************************************************/
+				Method suiteMethod = getSuiteMethod(testClass);
+				if (suiteMethod != null) {
+					try {
+						TestSuite suite = (TestSuite) suiteMethod.invoke(null,
+								null);
+						List tests = Collections.list(suite.tests());
+						// Find out the number of tests
+						if (rootTest) {
+							for (Object test : tests) {
+								Request runnerRequest = Request
+										.classWithoutSuiteMethod(test
+												.getClass());
+								Runner runner = runnerRequest.getRunner();
+								testCount += runner.testCount();
 							}
-							// Test methods will not be considered in a suite
-							continue;
-						} catch (Exception e) {
-							throw new RuntimeException(e);
+							rootTest = false;
 						}
+						for (Object test : tests) {
+							Class<? extends Object> testCaseClass = test
+									.getClass();
+							runTests(testCaseClass);
+						}
+						// Test methods will not be considered in a suite
+						continue;
+					} catch (Exception e) {
+						throw new RuntimeException(e);
 					}
 				}
 
@@ -299,6 +366,10 @@ public class JunitTestRunnerActivity extends Activity {
 				Request runnerRequest = Request
 						.classWithoutSuiteMethod(testClass);
 				Runner runner = runnerRequest.getRunner();
+				if (rootTest) {
+					testCount = runner.testCount();
+					rootTest = false;
+				}
 				RunNotifier notifier = new RunNotifier();
 
 				notifier.addListener(new RunListener() {
@@ -310,6 +381,36 @@ public class JunitTestRunnerActivity extends Activity {
 					JunitTestResult result;
 
 					@Override
+					public void testStarted(Description description)
+							throws Exception {
+						result = new JunitTestResult(description, testCount);
+					}
+
+					@Override
+					public void testIgnored(Description description)
+							throws Exception {
+						String ignoreReason = "";
+						// Getting the reason for the ignore from the Ignore
+						// annotation
+						// http://tech.groups.yahoo.com/group/junit/messages/20125?threaded=1&m=e&var=1&tidx=1
+						Collection<Annotation> annotations = description
+								.getAnnotations();
+						for (Iterator<Annotation> iterator = annotations
+								.iterator(); iterator.hasNext();) {
+							Annotation annotation = (Annotation) iterator
+									.next();
+							if (annotation.annotationType()
+									.equals(Ignore.class)) {
+								Ignore ignore = (Ignore) annotation;
+								ignoreReason = ignore.value();
+							}
+						}
+						JunitTestResult junitTestResult = new JunitTestResult(
+								description, testCount, ignoreReason);
+						publishProgress(junitTestResult);
+					}
+
+					@Override
 					public void testFailure(Failure failure) throws Exception {
 						result.addFailure(failure);
 					}
@@ -317,13 +418,8 @@ public class JunitTestRunnerActivity extends Activity {
 					@Override
 					public void testFinished(Description description)
 							throws Exception {
+						result.finished = true;
 						publishProgress(result);
-					}
-
-					@Override
-					public void testStarted(Description description)
-							throws Exception {
-						result = new JunitTestResult(description);
 					}
 
 				});
@@ -333,23 +429,36 @@ public class JunitTestRunnerActivity extends Activity {
 
 		/**
 		 * {@inheritDoc}
-		 * 
+		 *
 		 * @see android.os.AsyncTask#onProgressUpdate(Progress[])
 		 */
 		protected void onProgressUpdate(JunitTestResult... results) {
-			addTestResult(results[0]);
+			JunitTestResult result = results[0];
+			progressBar.setMax(result.testCount);
+			++progress;
+			System.out.println("testCount=" + testCount + " progress="
+					+ progress);
+			runHasFailures |= result.hasFailures();
+			if (runHasFailures) {
+				progressBar.setSecondaryProgress(progress);
+			} else {
+				progressBar.setProgress(progress);
+			}
+			addTestResult(result);
 		}
 
 		/**
 		 * {@inheritDoc}
-		 * 
+		 *
 		 * @see android.os.AsyncTask#onPostExecute(java.lang.Object)
 		 */
 		@Override
 		protected void onPostExecute(Void result) {
-			startButton.setEnabled(true);
-			setProgressBarIndeterminateVisibility(false);
-			testListView.collapseGroup(testResultMap.size() - 1);
+			synchronized (JunitTestRunnerActivity.this) {
+				startButton.setEnabled(true);
+				setProgressBarIndeterminateVisibility(false);
+				testListView.collapseGroup(testResultMap.size() - 1);
+			}
 		}
 
 	}
@@ -427,7 +536,7 @@ public class JunitTestRunnerActivity extends Activity {
 
 		/**
 		 * Creates the view for a test method
-		 * 
+		 *
 		 * @see android.widget.ExpandableListAdapter#getChildView(int, int,
 		 *      boolean, android.view.View, android.view.ViewGroup)
 		 */
@@ -435,11 +544,15 @@ public class JunitTestRunnerActivity extends Activity {
 		public View getChildView(int groupPosition, int childPosition,
 				boolean isLastChild, View convertView, ViewGroup parent) {
 			TextView textView = getGenericView();
-			JunitTestResult child = getChild(groupPosition, childPosition);
-			String text = child.description.getMethodName();
-			if (child.hasFailures()) {
+			JunitTestResult testResult = getChild(groupPosition, childPosition);
+			String text = testResult.description.getMethodName();
+			if (testResult.hasFailures()) {
 				textView.setTextColor(Color.RED);
-				text += ": \"" + child.failures.get(0).getMessage() + "\"";
+				Failure failure = testResult.failures.get(0);
+				text += "\n\"" + failure.getMessage() + "\"";
+			} else if (testResult.isIgnored()) {
+				textView.setTextColor(Color.YELLOW);
+				text += "\nignored:\"" + testResult.ignoreReason + "\"";
 			} else {
 				textView.setTextColor(Color.GREEN);
 			}
@@ -449,7 +562,7 @@ public class JunitTestRunnerActivity extends Activity {
 
 		/**
 		 * Creates the view for the test node
-		 * 
+		 *
 		 * @see android.widget.ExpandableListAdapter#getGroupView(int, boolean,
 		 *      android.view.View, android.view.ViewGroup)
 		 */
@@ -473,20 +586,22 @@ public class JunitTestRunnerActivity extends Activity {
 
 		/**
 		 * Helper
-		 * 
+		 *
 		 * @return
 		 */
 		private TextView getGenericView() {
 			// Layout parameters for the ExpandableListView
 			AbsListView.LayoutParams lp = new AbsListView.LayoutParams(
-					ViewGroup.LayoutParams.MATCH_PARENT, 64);
+					ViewGroup.LayoutParams.MATCH_PARENT,
+					ViewGroup.LayoutParams.WRAP_CONTENT);
 
 			TextView textView = new TextView(JunitTestRunnerActivity.this);
 			textView.setLayoutParams(lp);
+			textView.setMinHeight(64);
 			// Center the text vertically
 			textView.setGravity(Gravity.CENTER_VERTICAL | Gravity.LEFT);
 			// Set the text starting position
-			textView.setPadding(60, 0, 0, 0);
+			textView.setPadding(60, 3, 3, 0);
 			return textView;
 		}
 
