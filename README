@@ -6,6 +6,8 @@ of JUnit you like. This is useful, if you want to use the new features of JUnit4
 
 I used JUnit4Android to successfully run the tests of the Spring Framework on Android - and there are many of them!
 
+![JUnit4Android TestRunner](/dthommes/JUnit4Android/raw/master/doc/screenshot-testrunner.png)
+
 ### Check out the Sources
 `git clone git://github.com/dthommes/JUnit4Android.git`
 
@@ -52,7 +54,7 @@ the code between the `JUnit4Android START` and `JUnit4Android END` comments).
 
     <!-- JUnit4Android START -->
     <uses-sdk android:minSdkVersion="8" />
-	<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
 
     <application android:icon="@drawable/ic_launcher" android:label="@string/app_name" >
         <activity android:label="@string/app_name" android:name="org.junit4android.JunitTestRunnerActivity" >
@@ -63,8 +65,8 @@ the code between the `JUnit4Android START` and `JUnit4Android END` comments).
             <!-- Enter your test or test suite's class name here or remove the
                  following element to make <package-name>.AllTests the class to be run as test. -->
             <meta-data android:name="testClass" android:value="org.junit4android.tests.Junit4TestSuite" />
-			<!-- Enable autorun by setting this property to 'true' -->
-		    <meta-data android:name="autorun" android:value="false" />
+            <!-- Enable autorun by setting this property to 'true' -->
+            <meta-data android:name="autorun" android:value="false" />
         </activity>
         <activity android:label="@string/app_name" android:name="org.junit4android.TestResultDetailActivity" />
 
@@ -121,18 +123,9 @@ on single tests during development.
 
 ### View Test Results in Eclipse
 
-If you are using Eclipse, you can view your test results in Eclipse's builtin JUnit-View (and jump to the source files from there). JUnit4Android stores an XML file with the test results on the SD-Card. You can open this file using the
+If you are using Eclipse, you can view your test results in Eclipse's builtin JUnit-View (and jump to the source files from there). JUnit4Android stores an XML file with the test results on the SD-Card (in the directory `junit4android/reports`). You can open this file using the
 File Explorer View of Eclipse' DDMS perspective (comes with ADT). Just use the 'Open XML File...' button in the upper right corner of this view to open the XML file directly from your device.
 
 **HAPPY TESTING!**
 
 Daniel
-
-
-
-
-
-
-
-
-
