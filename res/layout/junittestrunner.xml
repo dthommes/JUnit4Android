@@ -15,19 +15,20 @@
             android:layout_width="match_parent"
             android:layout_height="30dp"
             android:layout_marginLeft="3dp"
-            android:layout_marginRight="3dp"/>
+            android:layout_marginRight="3dp"
+            android:progressDrawable="@drawable/progress" />
 
         <TextView
             android:id="@+id/suiteNameTextView"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
             android:layout_marginLeft="6dp"
             android:layout_marginTop="11dp"
-            android:layout_centerVertical="true"
             android:ellipsize="start"
             android:scrollHorizontally="true"
             android:text="TEST"
-            android:textColor="#000"/>
+            android:textColor="#000" />
     </RelativeLayout>
 
     <Button

@@ -6,10 +6,12 @@
 
     <uses-sdk android:minSdkVersion="8" />
 
+	<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+
     <application
         android:icon="@drawable/ic_launcher"
         android:label="@string/app_name" >
-        <activity
+        <activity android:screenOrientation="portrait"
             android:label="@string/app_name"
             android:name="org.junit4android.JunitTestRunnerActivity" >
             <intent-filter >
@@ -17,6 +19,10 @@
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+ 			<!--
+			Enable autorun by setting this property to 'true'
+            -->
+            <meta-data android:name="autorun" android:value="false" />
             <!--
             Add your test or test suite's class name here or remove the
             following element to make <package-name>.AllTests

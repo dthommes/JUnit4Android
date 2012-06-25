@@ -40,7 +40,7 @@ You will use JUnit4Android to create your custom test runner application.
 
 * **Add the JUnit4Android Android library:** In the new project's properties (`Right Click on the project -> Properties`) open the `Android` item. In the pane below you can add Android Libraries.
   Press the `Add...` Button and choose `JUnit4Android` in the following popup to link Junit4Android to your project.
-* **Add JUnit4Android Activities**: Open your project's `AndroidManifest.xml` and add two Activities from JUnit4Android within the `application` element as shown below (You can copy & paste
+* **Add JUnit4Android Elements**: Open your project's `AndroidManifest.xml` and replace the content of the manifest element with that shown below (You can copy & paste
 the code between the `JUnit4Android START` and `JUnit4Android END` comments).
 
 ```xml
@@ -50,11 +50,11 @@ the code between the `JUnit4Android START` and `JUnit4Android END` comments).
     android:versionCode="1"
     android:versionName="1.0" >
 
+    <!-- JUnit4Android START -->
     <uses-sdk android:minSdkVersion="8" />
+	<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
 
     <application android:icon="@drawable/ic_launcher" android:label="@string/app_name" >
-
-        <!-- JUnit4Android START -->
         <activity android:label="@string/app_name" android:name="org.junit4android.JunitTestRunnerActivity" >
             <intent-filter >
                 <action android:name="android.intent.action.MAIN" />
@@ -63,11 +63,13 @@ the code between the `JUnit4Android START` and `JUnit4Android END` comments).
             <!-- Enter your test or test suite's class name here or remove the
                  following element to make <package-name>.AllTests the class to be run as test. -->
             <meta-data android:name="testClass" android:value="org.junit4android.tests.Junit4TestSuite" />
+			<!-- Enable autorun by setting this property to 'true' -->
+		    <meta-data android:name="autorun" android:value="false" />
         </activity>
         <activity android:label="@string/app_name" android:name="org.junit4android.TestResultDetailActivity" />
-        <!-- JUnit4Android END -->
 
     </application>
+    <!-- JUnit4Android END -->
 
 </manifest>
 ```
@@ -110,13 +112,17 @@ Please find the meta-data element as shown below and enter the class name within
 **Note:** If you remove the meta-data element, JUnit4Android will automatically use `<package-name>.AllTests` as value for `testClass` where `<package-name>`
 is your Android project's package. The JUnit4Android test runner will always display your chosen `testClass` in the first line.
 
+* Additionally you can set the 'autorun' meta-data to 'true'. When starting the test application, it will automatically run all your tests without a need for interaction.
 
 ### Start Testing
 
 Your custom TestRunner can now be used to run your tests. Feel free to change the testClass value in the manifest if you want to concentrate
 on single tests during development.
 
-Please let me know, if you are interested in an **autorun** setting to automatically run the tests on application startup.
+### View Test Results in Eclipse
+
+If you are using Eclipse, you can view your test results in Eclipse's builtin JUnit-View (and jump to the source files from there). JUnit4Android stores an XML file with the test results on the SD-Card. You can open this file using the
+File Explorer View of Eclipse' DDMS perspective (comes with ADT). Just use the 'Open XML File...' button in the upper right corner of this view to open the XML file directly from your device.
 
 **HAPPY TESTING!**
 
